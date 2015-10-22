@@ -1,0 +1,191 @@
+<html>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+attribute  vec4 vPosition;
+attribute  vec4 vColor;
+varying vec4 fColor;
+
+uniform vec3 rotate;
+uniform vec3 translate;
+uniform vec3 scale;
+uniform vec3 center;
+
+void main() 
+{
+    // Compute the sines and cosines of theta for each of
+    //   the three axes in one computation.
+    vec3 angles = radians( rotate );
+    vec3 c = cos( angles );
+    vec3 s = sin( angles );
+	
+	//Move to origin
+	mat4 toOrigin = mat4(	1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							-center[0], -center[1], -center[2], 1.0);
+
+	//Rotate X
+    mat4 rx = mat4(	1.0,  0.0,  0.0, 0.0,
+					0.0,  c.x,  s.x, 0.0,
+					0.0, -s.x,  c.x, 0.0,
+					0.0,  0.0,  0.0, 1.0 );
+
+	//Rotate Y
+    mat4 ry = mat4(	c.y, 0.0, -s.y, 0.0,
+					0.0, 1.0, 0.0, 0.0,
+					s.y, 0.0, c.y, 0.0,
+					0.0, 0.0, 0.0, 1.0 );
+
+	//Rotate Z
+    mat4 rz = mat4(	c.z, s.z, 0.0, 0.0,
+					-s.z, c.z, 0.0, 0.0,
+					0.0, 0.0, 1.0, 0.0,
+					0.0, 0.0, 0.0, 1.0 );
+					
+	//Scale
+    mat4 scale = mat4(	scale[0], 0.0, 0.0, 0.0,
+					0.0, scale[1], 0.0, 0.0,
+					0.0, 0.0, scale[2], 0.0,
+					0.0, 0.0, 0.0, 1.0 );
+	
+	//Move to point
+	mat4 toPoint = mat4(	1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							translate[0], translate[1], translate[2], 1.0);
+							
+		//Make 3D
+	mat4 to3D = mat4(	1, 0, 0, 0,
+						0, 1, 0, 0,
+						0, 0, 1, 1,
+						0, 0, 0, 1);
+					
+    fColor = vColor;
+    gl_Position = to3D * toPoint * scale * rx * ry * rz * toOrigin * vPosition;
+} 
+</script>
+<script id="texturevertex-shader" type="x-shader/x-vertex">
+
+attribute  vec4 vPosition;
+attribute  vec2 aTextureCoord;
+
+varying highp vec2 vTextureCoord;
+
+uniform vec3 rotate;
+uniform vec3 translate;
+uniform vec3 scale;
+uniform vec3 center;
+
+void main() 
+{
+    // Compute the sines and cosines of theta for each of
+    //   the three axes in one computation.
+    vec3 angles = radians( rotate );
+    vec3 c = cos( angles );
+    vec3 s = sin( angles );
+	
+	//Move to origin
+	mat4 toOrigin = mat4(	1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							-center[0], -center[1], -center[2], 1.0);
+
+	//Rotate X
+    mat4 rx = mat4(	1.0,  0.0,  0.0, 0.0,
+					0.0,  c.x,  s.x, 0.0,
+					0.0, -s.x,  c.x, 0.0,
+					0.0,  0.0,  0.0, 1.0 );
+
+	//Rotate Y
+    mat4 ry = mat4(	c.y, 0.0, -s.y, 0.0,
+					0.0, 1.0, 0.0, 0.0,
+					s.y, 0.0, c.y, 0.0,
+					0.0, 0.0, 0.0, 1.0 );
+
+	//Rotate Z
+    mat4 rz = mat4(	c.z, s.z, 0.0, 0.0,
+					-s.z, c.z, 0.0, 0.0,
+					0.0, 0.0, 1.0, 0.0,
+					0.0, 0.0, 0.0, 1.0 );
+					
+	//Scale
+    mat4 scale = mat4(	scale[0], 0.0, 0.0, 0.0,
+					0.0, scale[1], 0.0, 0.0,
+					0.0, 0.0, scale[2], 0.0,
+					0.0, 0.0, 0.0, 1.0 );
+	
+	//Move to point
+	mat4 toPoint = mat4(	1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							translate[0], translate[1], translate[2], 1.0);
+							
+	//Make 3D
+	mat4 to3D = mat4(	1, 0, 0, 0,
+						0, 1, 0, 0,
+						0, 0, 1, 1,
+						0, 0, 0, 1);
+							
+    gl_Position = to3D * toPoint * scale * rx * ry * rz * toOrigin * vPosition;
+	vTextureCoord = aTextureCoord;
+}
+</script>
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+   
+varying vec4 fColor;
+
+void main()
+{
+    gl_FragColor = fColor;
+}
+</script>
+<script id="texturefragment-shader" type="x-shader/x-fragment">
+
+varying highp vec2 vTextureCoord;
+
+uniform sampler2D uSampler;
+
+void main()
+{
+    gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+}
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="trans.js"></script>
+
+<body>
+<canvas id="gl-canvas" width="512" height="512">
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+
+<br/>
+<input type="button" value="Cube 1" id="cButton"></input> 
+<br/>
+<button id= "xButtonP">Rotate X</button>
+<button id= "xButtonN">Rotate X Opposite</button>
+<br/>
+<button id= "yButtonP">Rotate Y</button>
+<button id= "yButtonN">Rotate Y Opposite</button>
+<br/>
+<button id= "zButtonP">Rotate Z</button>
+<button id= "zButtonN">Rotate Z Opposite</button>
+<br/>
+<button id= "lButton">Move Left</button>
+<button id= "rButton">Move Right</button>
+<button id= "uButton">Move Up</button>
+<button id= "dButton">Move Down</button>
+<br/>
+<button id= "iButton">Move In</button>
+<button id= "oButton">Move Out</button>
+<br/>
+<button id= "bButton">Increase Size</button>
+<button id= "sButton">Decrease Size</button>
+
+</body>
+</html>
